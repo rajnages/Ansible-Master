@@ -1,5 +1,5 @@
 resource "local_file" "ansible-inventory-file" {
-  content = templatefile("publicservers.tpl",
+  content = templatefile("public-servers-yaml.tpl",
     {
 
       testserver01    = aws_instance.webservers.0.public_ip
