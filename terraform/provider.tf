@@ -10,11 +10,11 @@ terraform {
       source  = "hashicorp/aws"
     }
   }
-#   backend "s3" {
-#     bucket         = "workspacesbucket01"
-#     key            = "Ansible.tfstate"
-#     region         = "us-east-1"
-#     # dynamodb_table = "-terraform-locks"
-#     encrypt        = true
-#   }
+  backend "s3" {
+    bucket         = "workspacesbucket-ansible"
+    key            = "Ansible.tfstate"
+    region         = "us-east-1"
+    # dynamodb_table = "-terraform-locks"
+    encrypt        = true
+  }
 }
