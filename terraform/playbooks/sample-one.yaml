@@ -1,68 +1,16 @@
 ---
-- name: Sample playbook to install and manage NGINX
+- name: Normal playbook
   hosts: pvt
   become: yes
   gather_facts: yes
   become_user: root
-  vars:
-    app_name: "nginx"
-    app_version: "latest"
-    ubuntu_version: "24.04"  # Use this variable to control the installation
-
+  
   tasks:
-    - name: Install NGINX on Ubuntu 20.04
+    - name: Update apt cache
       apt:
-        name: "{{ app_name }}={{ nginx_ubuntu_20_version }}"  # Specific NGINX version for Ubuntu 20.04
-        state: present
         update_cache: yes
-      when: ubuntu_version == "24.04"  # Only run this task if the Ubuntu version is 20.04
-      tags:
-        - installation
 
-    - name: Install NGINX on Ubuntu 18.04
-      apt:
-        name: "{{ app_name }}={{ nginx_ubuntu_18_version }}"  # Specific NGINX version for Ubuntu 18.04
-        state: present
-        update_cache: yes
-      when: ubuntu_version == "18.04"  # Only run this task if the Ubuntu version is 18.04
-      tags:
-        - installation
-
-    - name: Install NGINX on Ubuntu 22.04
-      apt:
-        name: "{{ app_name }}={{ nginx_ubuntu_22_version }}"  # Specific NGINX version for Ubuntu 22.04
-        state: present
-        update_cache: yes
-      when: ubuntu_version == "22.04"  # Only run this task if the Ubuntu version is 22.04
-      tags:
-        - installation
-
-    - name: Ensure NGINX service is started and enabled
-      service:
-        name: "{{ app_name }}"
-        state: started
-        enabled: yes
-      when: ubuntu_version in ["20.04", "18.04", "22.04"]  # Ensure service starts for supported Ubuntu versions
-      tags:
-        - installation
-
-    - name: Ensure the service is not running (conditional)
-      service:
-        name: "{{ app_name }}"
-        state: stopped
-      when: ubuntu_version not in ["20.04", "18.04", "22.04"]  # Stop NGINX for unsupported Ubuntu versions
-      tags:
-        - installation
-
-    - name: Check NGINX status
-      service_facts:
-      when: ubuntu_version in ["20.04", "18.04", "22.04"]  # Check NGINX status for supported Ubuntu versions
-      tags:
-        - installation
-
-  handlers:
-    - name: Restart nginx
-      service:
-        name: "{{ app_name }}"
-        state: restarted
-      when: ubuntu_version in ["20.04", "18.04", "22.04"]  # Restart NGINX only for supported Ubuntu versions
+    - name: print some stuff
+      shell: |
+        echo "Hello World"
+        echo "This is a sample playbook"
