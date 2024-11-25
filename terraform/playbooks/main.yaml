@@ -1,0 +1,181 @@
+---
+- name: Complete Ansible Playbook Example for Real-Time Projects
+  hosts: all
+  become: yes  # Use 'sudo' for privileged tasks
+  gather_facts: yes
+  become_user: root
+  vars:
+    # Variables for customization
+    app_name: "nginx"
+    app_version: "latest"
+    config_file: "/etc/nginx/nginx.conf"
+    server_name: "{{ ansible_hostname }}.example.com"
+    web_root: "/var/www/{{ ansible_hostname }}"
+    log_file: "/var/log/nginx/{{ ansible_hostname }}.log"
+    environment: "dev"
+    packages:
+      - vim
+      - curl
+      - htop
+    service_name: "nginx"
+
+  tasks:
+
+    # Task 1: Update apt cache (using apt module)
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    # Task 2: Install essential packages (using apt module)
+    - name: Install essential packages
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ packages }}"
+
+    # Task 3: Install a specific version of NGINX (using apt module)
+    - name: Install NGINX
+      apt:
+        name: "{{ app_name }}={{ app_version }}"
+        state: present
+
+    # Task 4: Deploy configuration file using template (Jinja2 template)
+    - name: Deploy custom NGINX configuration
+      template:
+        src: nginx.conf.j2
+        dest: "{{ config_file }}"
+      notify:
+        - Restart NGINX
+
+    # Task 5: Start and enable NGINX service (using service module)
+    - name: Ensure NGINX is started and enabled
+      service:
+        name: "{{ service_name }}"
+        state: started
+        enabled: yes
+
+    # Task 6: Create a directory for web content (using file module)
+    - name: Create web root directory
+      file:
+        path: "{{ web_root }}"
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: '0755'
+
+    # Task 7: Copy a static HTML page (using copy module)
+    - name: Copy index.html to web root
+      copy:
+        src: index.html
+        dest: "{{ web_root }}/index.html"
+        owner: www-data
+        group: www-data
+        mode: '0644'
+
+    # Task 8: Fetch system information (using setup module)
+    - name: Gather system facts (hostname, OS, etc.)
+      setup:
+
+    # Task 9: Add a new user (using user module)
+    - name: Add a new user
+      user:
+        name: "devops"
+        state: present
+        shell: /bin/bash
+        create_home: yes
+
+    # Task 10: Create a group (using group module)
+    - name: Create devops group
+      group:
+        name: "devops"
+        state: present
+
+    # Task 11: Set up environment-specific configurations (using vars_files or conditionals)
+    - name: Set environment-specific variables
+      debug:
+        msg: "Environment is set to {{ environment }}"
+      when: environment == "dev"
+
+    # Task 12: Install a package using the 'yum' module (for RHEL/CentOS systems)
+    - name: Install HTTPD on RedHat/CentOS
+      yum:
+        name: httpd
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    # Task 13: Conditional handling (with when clause)
+    - name: Handle different service statuses based on environment
+      service:
+        name: "{{ service_name }}"
+        state: "{{ 'started' if environment == 'prod' else 'stopped' }}"
+      when: environment in ['dev', 'qa', 'prod']
+
+    # Task 14: Execute commands using the command module
+    - name: Run a command to check NGINX status
+      command: "systemctl status nginx"
+      register: nginx_status
+      changed_when: False
+
+    # Task 15: Show output using debug
+    - name: Display NGINX status
+      debug:
+        msg: "{{ nginx_status.stdout }}"
+
+    # Task 16: Use a loop for creating multiple directories
+    - name: Create multiple directories
+      file:
+        path: "/var/www/{{ item }}"
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: '0755'
+      loop:
+        - "site1"
+        - "site2"
+        - "site3"
+
+    # Task 17: Check and debug whether the file exists
+    - name: Check if configuration file exists
+      stat:
+        path: "{{ config_file }}"
+      register: file_stat
+
+    - name: Debug if configuration file exists
+      debug:
+        msg: "Configuration file exists at {{ config_file }}"
+      when: file_stat.stat.exists
+
+    # Task 18: Template with conditionals (using Jinja2 logic)
+    - name: Create a customized NGINX config file for different environments
+      template:
+        src: nginx.conf.j2
+        dest: "{{ config_file }}"
+      vars:
+        server_name: "{{ 'prod.example.com' if environment == 'prod' else 'dev.example.com' }}"
+
+    # Task 19: Add a cron job for regular updates (using cron module)
+    - name: Create a cron job for daily updates
+      cron:
+        name: "Daily package update"
+        minute: "0"
+        hour: "3"
+        job: "/usr/bin/apt update && /usr/bin/apt upgrade -y"
+        state: present
+
+    # Task 20: Handling file changes with notifications (using handlers)
+    - name: Ensure NGINX configuration is reloaded if updated
+      service:
+        name: nginx
+        state: reloaded
+      when: file_stat.stat.changed
+
+  handlers:
+    - name: Restart NGINX
+      service:
+        name: "{{ service_name }}"
+        state: restarted
+
+    - name: Reload NGINX
+      service:
+        name: "{{ service_name }}"
+        state: reloaded
