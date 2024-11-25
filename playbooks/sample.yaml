@@ -1,0 +1,18 @@
+---
+- name: This is our first playbook
+  hosts: pvt
+  gather_facts: yes
+  become: yes
+  become_user: root
+  vars:
+    TFROM: 1.8.5
+  tasks:
+    - name: check the hostnames
+      shell: cat /etc/lsb-release
+    - name: check apt update
+      shell: apt-get update
+    - name: install tools
+      shell: apt-get install -y unzip jq stress net-tools
+  
+  
+  
